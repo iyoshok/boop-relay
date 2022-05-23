@@ -20,6 +20,7 @@ use tokio_rustls::{
     rustls::{self, Certificate, PrivateKey},
     {server::TlsStream, TlsAcceptor},
 };
+
 use flexi_logger::{FileSpec, Logger, WriteMode, Duplicate};
 #[macro_use]
 extern crate log;
@@ -50,7 +51,8 @@ impl SharedState {
     }
 }
 
-const AFK_TIMEOUT_SECS: u64 = 120;
+const LOG_DIR: &str = "logs";
+const AFK_TIMEOUT_SECS: u64 = 30;
 
 #[derive(FromArgs, Debug)]
 /// TLS-Server providing the backend for cute snoot boops
@@ -92,12 +94,14 @@ fn load_keys(path: &Path) -> io::Result<Vec<PrivateKey>> {
 async fn main() -> Result<(), Error> {
     let options: BoopOptions = argh::from_env();
 
+    tokio::fs::create_dir_all(LOG_DIR).await.expect("failed to create logging directory");
+
     let level = if options.debug { "debug" } else { "info" };
     let duplicate_level = if options.debug { Duplicate::Debug } else { Duplicate::Info };
 
     Logger::try_with_str(level)
         .expect("failed to set logging configuration")
-        .log_to_file(FileSpec::default())
+        .log_to_file(FileSpec::default().directory(LOG_DIR).basename("boop_server"))
         .write_mode(WriteMode::BufferAndFlush)
         .duplicate_to_stdout(duplicate_level)
         .start()
