@@ -94,20 +94,30 @@ fn load_keys(path: &Path) -> io::Result<Vec<PrivateKey>> {
 async fn main() -> Result<(), Error> {
     let options: BoopOptions = argh::from_env();
 
-    tokio::fs::create_dir_all(LOG_DIR).await.expect("failed to create logging directory");
+    tokio::fs::create_dir_all(LOG_DIR)
+        .await
+        .expect("failed to create logging directory");
 
     let level = if options.debug { "debug" } else { "info" };
-    let duplicate_level = if options.debug { Duplicate::Debug } else { Duplicate::Info };
+    let duplicate_level = if options.debug {
+        Duplicate::Debug
+    } else {
+        Duplicate::Info
+    };
 
     Logger::try_with_str(level)
         .expect("failed to set logging configuration")
-        .log_to_file(FileSpec::default().directory(LOG_DIR).basename("boop_server"))
+        .log_to_file(
+            FileSpec::default()
+                .directory(LOG_DIR)
+                .basename("boop_server"),
+        )
         .write_mode(WriteMode::BufferAndFlush)
         .duplicate_to_stdout(duplicate_level)
         .start()
         .expect("failed to initialize logging");
 
-    debug!("debug loggin activated");
+    debug!("debug logging active");
 
     let clients = clients::read_clients_file(&options.clients_config)
         .await
