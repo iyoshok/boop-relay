@@ -21,7 +21,7 @@ use tokio_rustls::{
     {server::TlsStream, TlsAcceptor},
 };
 
-use flexi_logger::{FileSpec, Logger, WriteMode, Duplicate};
+use flexi_logger::{Duplicate, FileSpec, Logger, WriteMode};
 #[macro_use]
 extern crate log;
 
@@ -110,7 +110,7 @@ async fn main() -> Result<(), Error> {
         .log_to_file(
             FileSpec::default()
                 .directory(LOG_DIR)
-                .basename("boop_server"),
+                .basename("boop_server")
         )
         .write_mode(WriteMode::BufferAndFlush)
         .duplicate_to_stdout(duplicate_level)
@@ -156,9 +156,7 @@ async fn main() -> Result<(), Error> {
         tokio::spawn(async move {
             debug!("received connection attempt, trying tls handshake");
 
-            if let Err(err) =
-                handle_connection(&acceptor, stream, &clients_list, state).await
-            {
+            if let Err(err) = handle_connection(&acceptor, stream, &clients_list, state).await {
                 if err.kind() == io::ErrorKind::ConnectionReset {
                     warn!("client forcefully closed the connection");
                 } else {
@@ -228,7 +226,7 @@ async fn handle_connection(
     let (tx, mut rx): (Tx, Rx) = unbounded_channel();
     let mut watchdog = tokio::time::interval(Duration::from_secs(AFK_TIMEOUT_SECS));
     watchdog.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay); // if tick is missed, fire next tick asap and then wait the full afk timeout again
-    let mut watchdog_was_pet = true;
+    let mut was_pinged = true;
 
     // add connection to state
     add_connection(&client_key, &connection_id, tx, &state).await;
@@ -237,13 +235,14 @@ async fn handle_connection(
         let mut buf = String::new();
         tokio::select! {
             _ = watchdog.tick() => {
-                if !watchdog_was_pet {
-                    debug!("connection {} timed out", {connection_id});
+                if !was_pinged {
+                    debug!("connection {} timed out", {&connection_id});
                     writehalf.shutdown().await?;
+                    remove_connection(&client_key, connection_id, &state).await;
                     return Ok(());
                 }
                 else {
-                    watchdog_was_pet = false;
+                    was_pinged = false;
                 }
             },
             res = reader.read_line(&mut buf) => match res {
@@ -254,7 +253,7 @@ async fn handle_connection(
                     }
 
                     debug!("{}", &buf);
-                    let parse_result = parse_message(&buf);                    
+                    let parse_result = parse_message(&buf);
                     if let Ok(msg) = parse_result {
                         match msg {
                             MessageType::DISCONNECT => {
@@ -263,13 +262,14 @@ async fn handle_connection(
                             },
                             MessageType::PING => {
                                 send_message(&mut writehalf, MessageType::PONG).await?;
+                                was_pinged = true;
                             },
                             MessageType::BOOP(partner_key) => {
                                 let state = state.lock().await;
 
                                 if let Some(inner_map) = state.connections.get(&partner_key) {
                                     for (_, channel) in inner_map {
-                                        let _ = channel.send(MessageType::BOOP(partner_key.clone()));
+                                        let _ = channel.send(MessageType::BOOP(client_key.clone()));
                                     }
                                 }
                             },
