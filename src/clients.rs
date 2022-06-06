@@ -1,13 +1,8 @@
-use std::{
-    io::Error, 
-    path::PathBuf,
-};
+use std::{io::Error, path::PathBuf};
 
 use argon2::{
-    password_hash::{
-        PasswordHash, PasswordVerifier
-    },
-    Argon2
+    password_hash::{PasswordHash, PasswordVerifier},
+    Argon2,
 };
 
 use serde::Deserialize;
@@ -26,18 +21,22 @@ pub async fn read_clients_file(clients_config: &PathBuf) -> Result<Vec<Client>, 
     Ok(clients)
 }
 
-pub fn client_login_is_valid(key: &String, password: &String, clients: &Vec<Client>) -> Result<bool, ()> {
+pub fn client_login_is_valid(
+    key: &String,
+    password: &String,
+    clients: &Vec<Client>,
+) -> Result<bool, ()> {
     let mut client_iter = clients.iter();
 
-    if let Some(client) = client_iter.find(| client | &client.key == key) {
+    if let Some(client) = client_iter.find(|client| &client.key == key) {
         if let Ok(parsed_hash) = PasswordHash::new(&client.hash) {
-            Ok(Argon2::default().verify_password(password.as_bytes(), &parsed_hash).is_ok())
-        }
-        else {
+            Ok(Argon2::default()
+                .verify_password(password.as_bytes(), &parsed_hash)
+                .is_ok())
+        } else {
             Err(())
         }
-    }
-    else {
+    } else {
         Ok(false)
     }
 }
@@ -56,13 +55,17 @@ mod tests {
     fn test_hash_validation_correct() {
         let clients = vec![
             Client {
-                key: String::from("foo"), 
-                hash: String::from("$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A")
+                key: String::from("foo"),
+                hash: String::from(
+                    "$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A",
+                ),
             },
             Client {
                 key: String::from("iyoshok"),
-                hash: String::from("$argon2id$v=19$m=16,t=2,p=1$bGVWbjBzNEFxZTZLSkh2MA$Z1pgP1acelPKkL2nny9XsA")
-            }
+                hash: String::from(
+                    "$argon2id$v=19$m=16,t=2,p=1$bGVWbjBzNEFxZTZLSkh2MA$Z1pgP1acelPKkL2nny9XsA",
+                ),
+            },
         ];
 
         let test_res = client_login_is_valid(&String::from("foo"), &String::from("bar"), &clients);
@@ -74,13 +77,17 @@ mod tests {
     fn test_hash_validation_incorrect() {
         let clients = vec![
             Client {
-                key: String::from("foo"), 
-                hash: String::from("$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A")
+                key: String::from("foo"),
+                hash: String::from(
+                    "$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A",
+                ),
             },
             Client {
                 key: String::from("iyoshok"),
-                hash: String::from("$argon2id$v=19$m=16,t=2,p=1$bGVWbjBzNEFxZTZLSkh2MA$Z1pgP1acelPKkL2nny9XsA")
-            }
+                hash: String::from(
+                    "$argon2id$v=19$m=16,t=2,p=1$bGVWbjBzNEFxZTZLSkh2MA$Z1pgP1acelPKkL2nny9XsA",
+                ),
+            },
         ];
 
         let test_res = client_login_is_valid(&String::from("foo"), &String::from("barr"), &clients);

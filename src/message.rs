@@ -5,7 +5,7 @@ pub enum MessageType {
     DISCONNECT,
     PING,
     BOOP(String), //partner_key
-    AYT(String), //partner_key
+    AYT(String),  //partner_key
 
     // usually responses
     HEY,
@@ -14,7 +14,7 @@ pub enum MessageType {
     PONG,
     ERROR(MessageErrorKind),
     ONLINE(String),
-    AFK(String)
+    AFK(String),
 }
 
 #[derive(Debug, PartialEq)]
@@ -22,29 +22,31 @@ pub enum MessageErrorKind {
     NotAvailable,
     MalformedCommand,
     MalformedArguments,
-    ProtocolMismatch
+    ProtocolMismatch,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ParserError {
     UnknownMessageType,
-    UnknownArguments
+    UnknownArguments,
 }
 
 impl Into<MessageErrorKind> for ParserError {
     fn into(self) -> MessageErrorKind {
         match self {
             ParserError::UnknownMessageType => MessageErrorKind::MalformedCommand,
-            ParserError::UnknownArguments => MessageErrorKind::MalformedArguments
+            ParserError::UnknownArguments => MessageErrorKind::MalformedArguments,
         }
     }
 }
 
 fn connect(args: &Vec<&str>) -> Result<MessageType, ParserError> {
     if args.len() == 2 {
-        Ok(MessageType::CONNECT(String::from(args[0]), String::from(args[1])))
-    }
-    else {
+        Ok(MessageType::CONNECT(
+            String::from(args[0]),
+            String::from(args[1]),
+        ))
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -52,8 +54,7 @@ fn connect(args: &Vec<&str>) -> Result<MessageType, ParserError> {
 fn boop(args: &Vec<&str>) -> Result<MessageType, ParserError> {
     if args.len() == 1 {
         Ok(MessageType::BOOP(String::from(args[0])))
-    }
-    else {
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -61,8 +62,7 @@ fn boop(args: &Vec<&str>) -> Result<MessageType, ParserError> {
 fn ayt(args: &Vec<&str>) -> Result<MessageType, ParserError> {
     if args.len() == 1 {
         Ok(MessageType::AYT(String::from(args[0])))
-    }
-    else {
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -70,8 +70,7 @@ fn ayt(args: &Vec<&str>) -> Result<MessageType, ParserError> {
 fn online(args: &Vec<&str>) -> Result<MessageType, ParserError> {
     if args.len() == 1 {
         Ok(MessageType::ONLINE(String::from(args[0])))
-    }
-    else {
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -79,8 +78,7 @@ fn online(args: &Vec<&str>) -> Result<MessageType, ParserError> {
 fn afk(args: &Vec<&str>) -> Result<MessageType, ParserError> {
     if args.len() == 1 {
         Ok(MessageType::AFK(String::from(args[0])))
-    }
-    else {
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -92,10 +90,9 @@ fn error(args: &Vec<&str>) -> Result<MessageType, ParserError> {
             "MALFORMED_COMMAND" => Ok(MessageType::ERROR(MessageErrorKind::MalformedCommand)),
             "MALFORMED_ARGUMENTS" => Ok(MessageType::ERROR(MessageErrorKind::MalformedArguments)),
             "PROTOCOL_MISMATCH" => Ok(MessageType::ERROR(MessageErrorKind::ProtocolMismatch)),
-            _ => Err(ParserError::UnknownArguments)
+            _ => Err(ParserError::UnknownArguments),
         }
-    }
-    else {
+    } else {
         Err(ParserError::UnknownArguments)
     }
 }
@@ -117,10 +114,9 @@ fn get_message_type_from_text(cmd: &str, args: Vec<&str>) -> Result<MessageType,
             "ERROR" => Err(ParserError::UnknownArguments),
             "ONLINE" => Err(ParserError::UnknownArguments),
             "AFK" => Err(ParserError::UnknownArguments),
-            _ => Err(ParserError::UnknownMessageType)
-        } 
-    }
-    else {
+            _ => Err(ParserError::UnknownMessageType),
+        }
+    } else {
         match cmd.to_ascii_uppercase().as_str() {
             "CONNECT" => connect(&args),
             "BOOP" => boop(&args),
@@ -136,8 +132,8 @@ fn get_message_type_from_text(cmd: &str, args: Vec<&str>) -> Result<MessageType,
             "NO" => Err(ParserError::UnknownArguments),
             "PONG" => Err(ParserError::UnknownArguments),
             "BYE" => Err(ParserError::UnknownArguments),
-            _ => Err(ParserError::UnknownMessageType)
-        } 
+            _ => Err(ParserError::UnknownMessageType),
+        }
     }
 }
 
@@ -174,7 +170,7 @@ fn error_text(err_kind: MessageErrorKind) -> String {
         MessageErrorKind::NotAvailable => "NOT_AVAILABLE",
         MessageErrorKind::MalformedCommand => "MALFORMED_COMMAND",
         MessageErrorKind::MalformedArguments => "MALFORMED_ARGUMENTS",
-        MessageErrorKind::ProtocolMismatch => "PROTOCOL_MISMATCH",        
+        MessageErrorKind::ProtocolMismatch => "PROTOCOL_MISMATCH",
     };
 
     String::from(kind_text)
@@ -196,7 +192,10 @@ mod tests {
         let teststring = String::from("CONNECT foo bar\n");
         let test_res = parse_message(&teststring);
         assert!(test_res.is_ok());
-        assert_eq!(test_res.unwrap(), MessageType::CONNECT(String::from("foo"), String::from("bar")));
+        assert_eq!(
+            test_res.unwrap(),
+            MessageType::CONNECT(String::from("foo"), String::from("bar"))
+        );
 
         //one value
         let teststring = String::from("BOOP foo\n");
@@ -214,13 +213,19 @@ mod tests {
         let teststring = String::from("coNnECt foo bar\n");
         let test_res = parse_message(&teststring);
         assert!(test_res.is_ok());
-        assert_eq!(test_res.unwrap(), MessageType::CONNECT(String::from("foo"), String::from("bar")));
-        
+        assert_eq!(
+            test_res.unwrap(),
+            MessageType::CONNECT(String::from("foo"), String::from("bar"))
+        );
+
         //no newline char
         let teststring = String::from("coNnECt foo bar");
         let test_res = parse_message(&teststring);
         assert!(test_res.is_ok());
-        assert_eq!(test_res.unwrap(), MessageType::CONNECT(String::from("foo"), String::from("bar")));
+        assert_eq!(
+            test_res.unwrap(),
+            MessageType::CONNECT(String::from("foo"), String::from("bar"))
+        );
     }
 
     #[test]
@@ -266,7 +271,7 @@ mod tests {
         let test_res = parse_message(&teststring);
         assert!(test_res.is_err());
         assert_eq!(test_res.unwrap_err(), ParserError::UnknownArguments);
-        
+
         //empty arguments / 1
         let teststring = String::from("BOOP  \n");
         let test_res = parse_message(&teststring);

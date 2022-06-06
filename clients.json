@@ -2,5 +2,13 @@
     {
         "key": "foo",
         "hash": "$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A"
+    },
+    {
+        "key": "foo2",
+        "hash": "$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A"
+    },
+    {
+        "key": "foo3",
+        "hash": "$argon2id$v=19$m=32,t=2,p=1$V3hudnFvVEJwTnFjNGRMVA$E+sVHTGn3oMAFHhk27r05A"
     }
 ]

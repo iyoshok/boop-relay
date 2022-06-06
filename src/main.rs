@@ -110,7 +110,7 @@ async fn main() -> Result<(), Error> {
         .log_to_file(
             FileSpec::default()
                 .directory(LOG_DIR)
-                .basename("boop_server")
+                .basename("boop_server"),
         )
         .write_mode(WriteMode::BufferAndFlush)
         .duplicate_to_stdout(duplicate_level)
