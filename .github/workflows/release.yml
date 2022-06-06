@@ -106,7 +106,7 @@ jobs:
         run: |
           # strip target/${{ matrix.target }}/release/boop-relay
           cd target/${{ matrix.target }}/release          
-          tar czvf ../../../boop-relay-${{ matrix.target }}.tar.gz boop-relay
+          tar czvf ../../../boop-relay-${{ matrix.target }}.tar.gz boop-relay*
           cd -
           
       - name: Publish
