@@ -13,7 +13,7 @@ This repository contains the server code for the BOOP server application. All hi
 ### TL;DR
 1. Get a TLS certificate for your domain and save them in PEM format.
 2. Ask your friends / partners / colleagues for their desired username and a Argon2id hash of their desired password and save this data to a JSON file (the JSON schema is demonstrated in `clients.json`). The filename doesn't matter, the schema does.
-3. Run `boop-relay <path to clients file, e.g. clients.json> <socket address, e.g. localhost:1234> -k <path to cert private key> -c <path to cert file>`. All these arguments are necessary, if you omit any of them the application will exit immediately.
+3. Run `boop-relay <path to clients file, e.g. clients.json> <socket address, e.g. localhost:1234> -k <path to cert private key> -c <path to cert file>`. All of these arguments are necessary, if you omit any, the application will exit immediately.
 
 ### In Depth
 TODO
