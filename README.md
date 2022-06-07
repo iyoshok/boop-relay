@@ -5,8 +5,8 @@ developement process. I don't intend on actively developing this system any furt
 pull requests or open issues, I will try to reply to them as quickly as possible. 
 
 ## BOOP
-Server: <- You are here
-Client: https://github.com/iyoshok/boop-snoot
+- Server: <- You are here
+- Client: https://github.com/iyoshok/boop-snoot
 
 This repository contains the server code for the BOOP server application. All hints for using the client application are in the respective repository (see above). This document will quickly explain how to host your very own BOOP server:
 
